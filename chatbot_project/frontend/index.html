@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilingual AI Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-light-subtle">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg modern-navbar">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <div class="logo-icon"><i class="fas fa-robot"></i></div>
+                <div>
+                    <h1 class="h5 mb-0 fw-bold">LinguaBot AI</h1>
+                    <span class="d-block text-white-50 small">Multilingual Assistant</span>
+                </div>
+            </a>
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <div class="language-selector-modern">
+                    <label for="languageSelect" class="visually-hidden">Language</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-transparent text-white"><i
+                                class="fas fa-globe"></i></span>
+                        <select id="languageSelect" class="form-select border-0 shadow-none text-white bg-transparent">
+                            <option value="english" class="text-dark">English</option>
+                            <option value="hindi" class="text-dark">हिंदी (Hindi)</option>
+                            <option value="telugu" class="text-dark">తెలుగు (Telugu)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container py-4 col-xxl-10">
+        <div class="row layout-row g-4">
+            <!-- Left Sidebar: Actions & Info -->
+            <div class="col-lg-3 d-flex flex-column gap-4 order-2 order-lg-1 side-panel">
+                <!-- Action Card -->
+                <div class="glass-card p-4">
+                    <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                        <i class="fas fa-sliders-h text-primary"></i> Controls
+                    </h5>
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-action-outline d-flex align-items-center justify-content-center gap-2"
+                            id="clearBtn">
+                            <i class="fas fa-trash-alt"></i> Clear Chat
+                        </button>
+                        <button class="btn btn-action-outline d-flex align-items-center justify-content-center gap-2"
+                            id="speakBtn">
+                            <i class="fas fa-volume-up"></i> Read Last
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Status Card -->
+                <div class="glass-card p-4 flex-grow-1 d-flex flex-column">
+                    <h5 class="fw-semibold mb-4 d-flex align-items-center gap-2">
+                        <i class="fas fa-server text-success"></i> System Status
+                    </h5>
+                    <div class="d-flex flex-column gap-3 flex-grow-1 text-muted small">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>NLP Node 1</span>
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Online</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Ping Latency</span>
+                            <span class="text-dark fw-medium">~124ms</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Prediction Engine</span>
+                            <span class="text-dark fw-medium">Active</span>
+                        </div>
+
+                        <div class="mt-auto pt-3 border-top border-light">
+                            <span class="d-block mb-2 text-uppercase fw-bold"
+                                style="font-size: 0.70rem; letter-spacing: 0.5px;">Active Modules</span>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-white text-secondary border fw-normal shadow-sm px-2 py-1"><i
+                                        class="fas fa-keyboard me-1"></i> Auto-Complete</span>
+                                <span class="badge bg-white text-secondary border fw-normal shadow-sm px-2 py-1"><i
+                                        class="fas fa-microphone me-1"></i> Voice NLP</span>
+                                <span class="badge bg-white text-secondary border fw-normal shadow-sm px-2 py-1"><i
+                                        class="fas fa-volume-up me-1"></i> Neural TTS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Area: Chat Interface -->
+            <div class="col-lg-9 order-1 order-lg-2">
+                <div class="glass-card chat-wrapper d-flex flex-column h-100">
+                    <!-- Chat Window -->
+                    <div class="chat-window flex-grow-1 p-4 custom-scrollbar" id="chatWindow">
+                        <div class="message bot-message">
+                            <div class="message-content shadow-sm">
+                                Hello! I'm your Multilingual AI companion. How can I help you today?
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div
+                        class="chat-input-wrapper p-3 border-top border-light bg-white bg-opacity-75 rounded-bottom-4 position-relative">
+                        <!-- Floating Predictions Panel -->
+                        <div class="floating-predictions custom-scrollbar" id="predictionsPanel">
+                            <div class="predictions-content" id="predictionsContent">
+                            </div>
+                        </div>
+
+                        <div class="input-group enhanced-input align-items-center">
+                            <button class="btn btn-icon voice-btn" id="voiceBtn" title="Use Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <input type="text" id="userInput" class="form-control border-0 shadow-none bg-transparent"
+                                placeholder="Type a message or use voice..." autocomplete="off">
+                            <button class="btn btn-primary btn-send rounded-circle shadow-sm" id="sendBtn"
+                                title="Send Message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading-overlay" id="loadingIndicator">
+        <div class="spinner-container glass-card p-4 text-center rounded-4">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h6 class="mb-0 text-dark fw-medium">AI is conceptualizing...</h6>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

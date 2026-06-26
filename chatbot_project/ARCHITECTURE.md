@@ -1,0 +1,406 @@
+# System Architecture & Flow Diagrams
+
+## 🏗️ Overall System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         USER INTERFACE                           │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Web Browser (Chrome/Edge/Firefox/Safari)                │   │
+│  │  - Chat Window                                           │   │
+│  │  - Input Box                                             │   │
+│  │  - Prediction Panel                                      │   │
+│  │  - Voice Controls                                        │   │
+│  │  - Language Selector                                     │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└────────────────────────┬────────────────────────────────────────┘
+                         │ HTTP/REST API
+                         │ (JSON)
+┌────────────────────────▼────────────────────────────────────────┐
+│                    FLASK WEB SERVER                              │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  API Endpoints                                           │   │
+│  │  - /predict      - /chat                                 │   │
+│  │  - /voice-to-text - /text-to-speech                      │   │
+│  │  - /change-language - /clear-history                     │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+┌───────▼──────┐  ┌──────▼──────┐  ┌─────▼──────┐
+│ PREDICTION   │  │  CHATBOT    │  │  LANGUAGE  │
+│   ENGINE     │  │   ENGINE    │  │   MODULE   │
+│              │  │             │  │            │
+│ - N-gram     │  │ - Patterns  │  │ - Detect   │
+│ - Predict    │  │ - TF-IDF    │  │ - Translate│
+│ - Sequences  │  │ - Respond   │  │ - Switch   │
+└──────┬───────┘  └──────┬──────┘  └─────┬──────┘
+       │                 │                │
+       └────────┬────────┴────────┬───────┘
+                │                 │
+        ┌───────▼──────┐  ┌───────▼──────┐
+        │    VOICE     │  │     UTILS    │
+        │   MODULE     │  │              │
+        │              │  │ - Preprocess │
+        │ - STT        │  │ - Tokenize   │
+        │ - TTS        │  │ - Lemmatize  │
+        └──────┬───────┘  └──────┬───────┘
+               │                 │
+               └────────┬────────┘
+                        │
+        ┌───────────────▼───────────────┐
+        │      DATA & MODELS            │
+        │                               │
+        │ - Training Datasets           │
+        │ - N-gram Model                │
+        │ - Vocabulary                  │
+        │ - TF-IDF Vectors              │
+        └───────────────────────────────┘
+```
+
+---
+
+## 🔄 User Interaction Flow
+
+### 1. Text Input Flow
+```
+User Types Text
+      │
+      ▼
+Input Event Triggered
+      │
+      ▼
+Debounce (300ms)
+      │
+      ▼
+POST /predict
+      │
+      ▼
+Prediction Engine
+      │
+      ├─► N-gram Analysis
+      │
+      ├─► Word Predictions (Top 5)
+      │
+      └─► Sequence Predictions (Top 3)
+      │
+      ▼
+JSON Response
+      │
+      ▼
+Display Predictions
+      │
+      ▼
+User Clicks Prediction
+      │
+      ▼
+Auto-fill Input
+```
+
+### 2. Chat Message Flow
+```
+User Sends Message
+      │
+      ▼
+Add to Chat Window
+      │
+      ▼
+POST /chat
+      │
+      ▼
+Language Detection
+      │
+      ▼
+Translation (if needed)
+      │
+      ▼
+Chatbot Engine
+      │
+      ├─► Pattern Matching
+      │
+      ├─► TF-IDF Similarity
+      │
+      └─► Generate Response
+      │
+      ▼
+Translation (if needed)
+      │
+      ▼
+JSON Response
+      │
+      ▼
+Display Bot Message
+      │
+      ▼
+Update Chat History
+```
+
+### 3. Voice Input Flow
+```
+User Clicks Mic Button
+      │
+      ▼
+Request Mic Permission
+      │
+      ▼
+Start Recording
+      │
+      ▼
+Web Speech API
+      │
+      ▼
+Speech-to-Text
+      │
+      ▼
+Fill Input Box
+      │
+      ▼
+Trigger Predictions
+      │
+      ▼
+User Sends Message
+```
+
+### 4. Voice Output Flow
+```
+User Clicks Speak Button
+      │
+      ▼
+Get Last Bot Response
+      │
+      ▼
+POST /text-to-speech
+      │
+      ▼
+gTTS Generation
+      │
+      ▼
+Audio File Created
+      │
+      ▼
+Return Audio Stream
+      │
+      ▼
+Browser Plays Audio
+```
+
+---
+
+## 🧠 Prediction Engine Architecture
+
+```
+┌─────────────────────────────────────────┐
+│      PREDICTION ENGINE                  │
+│                                         │
+│  ┌───────────────────────────────────┐ │
+│  │  Input: "how are"                 │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Tokenization                     │ │
+│  │  ["how", "are"]                   │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  N-gram Context                   │ │
+│  │  Context: ("are",)                │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Lookup in Model                  │ │
+│  │  model[("are",)] → Counter        │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Get Top K                        │ │
+│  │  ["you", "they", "things", ...]   │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Generate Sequences               │ │
+│  │  ["how are you",                  │ │
+│  │   "how are they",                 │ │
+│  │   "how are things"]               │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Return Predictions               │ │
+│  └───────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 💬 Chatbot Engine Architecture
+
+```
+┌─────────────────────────────────────────┐
+│       CHATBOT ENGINE                    │
+│                                         │
+│  ┌───────────────────────────────────┐ │
+│  │  Input: "Hello"                   │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Lowercase & Clean                │ │
+│  │  "hello"                          │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Pattern Matching                 │ │
+│  │  Check: hello, hi, hey, etc.      │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│         Match Found?                    │
+│         │         │                     │
+│       YES        NO                     │
+│         │         │                     │
+│         │    ┌────▼──────────────────┐ │
+│         │    │  TF-IDF Similarity    │ │
+│         │    │  Compare with corpus  │ │
+│         │    └────┬──────────────────┘ │
+│         │         │                     │
+│         │    High Similarity?           │
+│         │         │         │           │
+│         │       YES        NO           │
+│         │         │         │           │
+│  ┌──────▼─────────▼─────────▼───────┐ │
+│  │  Select Response                  │ │
+│  │  - Pattern response               │ │
+│  │  - Similar sentence               │ │
+│  │  - Default response               │ │
+│  └───────────┬───────────────────────┘ │
+│              │                          │
+│  ┌───────────▼───────────────────────┐ │
+│  │  Return Response                  │ │
+│  │  "Hello! How can I help you?"     │ │
+│  └───────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🌐 Multilingual Processing Flow
+
+```
+┌─────────────────────────────────────────┐
+│    MULTILINGUAL PROCESSING              │
+│                                         │
+│  User Input (Any Language)              │
+│         │                               │
+│         ▼                               │
+│  ┌─────────────────┐                   │
+│  │ Language Detect │                   │
+│  └────────┬────────┘                   │
+│           │                             │
+│      ┌────┴────┐                       │
+│      │         │                       │
+│   English   Other                      │
+│      │         │                       │
+│      │    ┌────▼────────┐              │
+│      │    │  Translate  │              │
+│      │    │  to English │              │
+│      │    └────┬────────┘              │
+│      │         │                       │
+│      └────┬────┘                       │
+│           │                             │
+│           ▼                             │
+│  ┌─────────────────┐                   │
+│  │ Process in      │                   │
+│  │ English         │                   │
+│  │ (Prediction/    │                   │
+│  │  Response)      │                   │
+│  └────────┬────────┘                   │
+│           │                             │
+│      Target Language?                  │
+│           │                             │
+│      ┌────┴────┐                       │
+│      │         │                       │
+│   English   Other                      │
+│      │         │                       │
+│      │    ┌────▼────────┐              │
+│      │    │  Translate  │              │
+│      │    │  to Target  │              │
+│      │    └────┬────────┘              │
+│      │         │                       │
+│      └────┬────┘                       │
+│           │                             │
+│           ▼                             │
+│  Return to User                        │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Data Flow Diagram
+
+```
+┌──────────────┐
+│   Dataset    │
+│   Files      │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Dataset    │
+│   Loader     │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ Preprocessor │
+│ - Tokenize   │
+│ - Clean      │
+│ - Lemmatize  │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Training   │
+│   - N-gram   │
+│   - TF-IDF   │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Trained    │
+│   Models     │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Inference  │
+│   - Predict  │
+│   - Respond  │
+└──────────────┘
+```
+
+---
+
+## 🎯 Component Interaction
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Frontend  │────▶│   Backend   │────▶│   Models    │
+│             │     │             │     │             │
+│ - UI        │     │ - API       │     │ - N-gram    │
+│ - Events    │     │ - Logic     │     │ - TF-IDF    │
+│ - Display   │     │ - Process   │     │ - Vocab     │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                    │
+       │                   ▼                    │
+       │            ┌─────────────┐             │
+       │            │   Utils     │             │
+       │            │             │             │
+       │            │ - Preproc   │             │
+       │            │ - Dataset   │             │
+       │            └─────────────┘             │
+       │                   │                    │
+       └───────────────────┴────────────────────┘
+                    Feedback Loop
+```
+
+---
+
+**System is fully architected and documented! 🏗️**

@@ -1,0 +1,35 @@
+{
+  "project": {
+    "name": "Multilingual Word Prediction Chatbot",
+    "version": "1.0.0",
+    "description": "NLP-based chatbot with word prediction and voice assistant"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": true
+  },
+  "languages": {
+    "supported": ["english", "hindi", "telugu"],
+    "default": "english"
+  },
+  "prediction": {
+    "ngram_size": 2,
+    "top_k_words": 5,
+    "top_k_sequences": 3
+  },
+  "models": {
+    "prediction_model": "models/word_prediction_model.pkl",
+    "auto_save": true
+  },
+  "voice": {
+    "enabled": true,
+    "speech_rate": 0.9,
+    "pitch": 1.0
+  },
+  "ui": {
+    "theme": "gradient",
+    "chat_history_limit": 100,
+    "prediction_debounce_ms": 300
+  }
+}

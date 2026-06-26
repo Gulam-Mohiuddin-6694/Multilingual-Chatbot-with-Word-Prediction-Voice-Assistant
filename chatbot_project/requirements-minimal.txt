@@ -1,0 +1,8 @@
+flask
+nltk
+numpy
+scikit-learn
+SpeechRecognition
+gTTS
+langdetect
+flask-cors
